@@ -134,7 +134,12 @@ bot.command('card', async (ctx) => {
     }
 });
 
-bot.launch().then(() => {
+bot.launch().then(async () => {
+  // Telegram側にメニューとして登録
+  await bot.telegram.setMyCommands([
+    { command: 'start', description: '初期設定と使い方' },
+    { command: 'card', description: 'テキストから名刺を作成' }
+  ]);
   console.log('Business Card Bot is running...');
 });
 
