@@ -67,13 +67,6 @@ async function createBusinessCard(text) {
       ctx.fillText(companyName, 80, 100);
   }
 
-  // 法人番号 (小さく、法人名の下)
-  if (corpNumber) {
-      ctx.font = '24px sans-serif';
-      ctx.fillStyle = '#666666';
-      ctx.fillText(`法人番号: ${corpNumber}`, 80, 140);
-  }
-
   // 氏名 (中央あたりに非常に大きく)
   if (name) {
       ctx.fillStyle = '#000000';
@@ -100,13 +93,6 @@ async function createBusinessCard(text) {
   }
   if (email) {
       ctx.fillText(`Email: ${email}`, 80, bottomY);
-  }
-
-  // 備考 (その他の情報があれば一番下に小さく)
-  if (otherInfo.length > 0) {
-      ctx.font = '20px sans-serif';
-      ctx.fillStyle = '#999999';
-      ctx.fillText(otherInfo.join(' '), 80, 560);
   }
 
   // 生成した画像を返す
