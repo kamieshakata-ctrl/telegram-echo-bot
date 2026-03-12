@@ -104,33 +104,28 @@ bot.start((ctx) => {
     ctx.reply('こんにちは！このグループで名刺を作ります。\n\n【使い方】\n`/card 法人番号 法人名 住所 電話 メール 名前...` のように一発で送信してください。自動で情報を読み取って名刺にします！', { parse_mode: 'Markdown' });
 });
 
-// /card コマンドの処理
-bot.command('card', async (ctx) => {
-    const text = ctx.message.text.replace('/card', '').trim();
+// テキストを受け取った時の処理（コマンド不要）
+bot.on('text', async (ctx) => {
+    const text = ctx.message.text.trim();
 
-    if (!text) {
-        return ctx.reply('エラー: 名刺にする情報が入力されていません。\n例:\n/card\n9020005012245\n一般社団法人きんもくせい\n...', { reply_to_message_id: ctx.message.message_id });
+    // 短すぎるメッセージや挨拶などは無視する（誤爆防止）
+    if (text.length < 15 && !text.includes('\n')) {
+        return;
     }
 
     try {
-        // 処理中であることを知らせる（Telegramは画像生成に少し時間がかかるとエラーになるため）
         const loadingMessage = await ctx.reply('名刺画像を生成中です...', { reply_to_message_id: ctx.message.message_id });
 
-        // 画像生成関数を呼び出し
         const imageBuffer = await createBusinessCard(text);
 
-        // 生成した画像をグループに送信
         await ctx.replyWithPhoto({ source: imageBuffer }, { 
-            caption: '名刺が完成しました！',
             reply_to_message_id: ctx.message.message_id 
         });
 
-        // 処理中のメッセージを削除
         await ctx.telegram.deleteMessage(ctx.chat.id, loadingMessage.message_id);
 
     } catch (error) {
         console.error('画像生成エラー:', error);
-        ctx.reply('申し訳ありません、名刺画像の生成中にエラーが発生しました。');
     }
 });
 
