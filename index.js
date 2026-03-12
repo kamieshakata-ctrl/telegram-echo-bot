@@ -2,6 +2,10 @@ const { Telegraf } = require('telegraf');
 const { createCanvas, registerFont } = require('canvas');
 require('dotenv').config();
 
+// フォントの登録（ローカルにダウンロードした日本語フォント）
+registerFont('./NotoSansJP-Regular.ttf', { family: 'Noto Sans JP' });
+registerFont('./NotoSansJP-Bold.ttf', { family: 'Noto Sans JP', weight: 'bold' });
+
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 // テキストから名刺情報を抽出し、名刺画像を生成する関数
@@ -63,20 +67,20 @@ async function createBusinessCard(text) {
 
   // 法人名 (大きく、左上)
   if (companyName) {
-      ctx.font = 'bold 48px sans-serif';
+      ctx.font = 'bold 48px "Noto Sans JP"';
       ctx.fillText(companyName, 80, 100);
   }
 
   // 氏名 (中央あたりに非常に大きく)
   if (name) {
       ctx.fillStyle = '#000000';
-      ctx.font = 'bold 72px sans-serif';
+      ctx.font = 'bold 72px "Noto Sans JP"';
       ctx.fillText(name, 80, 300);
   }
 
   // 連絡先情報 (右下にまとめて配置)
   ctx.fillStyle = '#333333';
-  ctx.font = '28px sans-serif';
+  ctx.font = '28px "Noto Sans JP"';
   let bottomY = 400;
   
   if (address) {
