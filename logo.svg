@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- 六角形のベース -->
+  <polygon points="50,5 90,27.5 90,72.5 50,95 10,72.5 10,27.5" fill="#1A2942"/>
+  <!-- 内側の六角形 -->
+  <polygon points="50,15 80,32.5 80,67.5 50,85 20,67.5 20,32.5" fill="none" stroke="#F8F8F5" stroke-width="3"/>
+  <!-- 中央のライン -->
+  <line x1="20" y1="50" x2="80" y2="50" stroke="#F8F8F5" stroke-width="4"/>
+  <line x1="50" y1="15" x2="50" y2="85" stroke="#F8F8F5" stroke-width="4"/>
+</svg>

@@ -1,5 +1,6 @@
 const { Telegraf } = require('telegraf');
-const { createCanvas, registerFont } = require('canvas');
+const { createCanvas, registerFont, loadImage } = require('canvas');
+const fs = require('fs');
 require('dotenv').config();
 
 // システムにインストールされたフォントパスを指定（Dockerfileでインストール済み）
@@ -88,19 +89,32 @@ async function createBusinessCard(text) {
   name = nameParts.join(' ');
 
   // --- 2. 抽出した情報をキャンバスに描画 ---
-  const leftX = 100;
+  const leftX = 140; // ロゴの分だけ全体を少し右にズラす
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'left';
 
-  // 法人名 (左上、余白を適切に)
+  // ロゴを描画 (左上、法人名の横)
+  try {
+      const logoBuffer = fs.readFileSync('./logo.svg');
+      const logoImage = await loadImage(logoBuffer);
+      ctx.drawImage(logoImage, 50, 80, 70, 70); // x=50, y=80 に 70x70 で描画
+  } catch(e) {
+      console.log('ロゴの読み込みをスキップしました');
+  }
+
+  // 法人名 (左上、ロゴの右側)
   if (companyName) {
-      ctx.font = 'bold 36px "Noto Sans CJK"';
-      ctx.fillText(companyName, leftX, 120);
+      ctx.fillStyle = '#1A2942'; // 法人名だけネイビーで少し高級感を出す
+      ctx.font = 'bold 40px "Noto Sans CJK"';
+      ctx.fillText(companyName, leftX, 125);
   }
 
   // 氏名 (中央より上)
   if (name) {
-      ctx.font = 'bold 70px "Noto Sans CJK"';
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 74px "Noto Sans CJK"';
+      // 名前の文字間に少しゆとりを持たせるため、今回はそのまま大きく配置しますが、
+      // 余白(leftX)が全体的に右に寄ってスタイリッシュになります。
       ctx.fillText(name, leftX, 260);
   }
 
