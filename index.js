@@ -12,9 +12,13 @@ async function createBusinessCard(text) {
   const canvas = createCanvas(1000, 600); // 名刺の一般的な比率（横1000px × 縦600px）
   const ctx = canvas.getContext('2d');
 
-  // 背景を白で塗りつぶす
-  ctx.fillStyle = '#FFFFFF';
+  // 背景を少し温かみのあるオフホワイトに
+  ctx.fillStyle = '#F8F8F5';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // 下部のデザイン帯（細めのネイビー）
+  ctx.fillStyle = '#1A2942'; // 濃いネイビー
+  ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
 
   // 1. テキストから各項目を抽出する（正規表現を使用）
   let companyName = "";
@@ -26,88 +30,66 @@ async function createBusinessCard(text) {
   let corpNumber = "";
   let otherInfo = [];
 
-  // スペース（全角・半角）や改行で単語ごとに分割
-  // ただし、名前が「苗字 スペース 名前」の形式だった場合、分断されてしまうのを防ぐため、
-  // まずは改行で配列（行）にしてから、行単位で情報を抽出します。
   const lines = text.split('\n');
 
   for (let line of lines) {
       let part = line.trim();
       if (!part) continue;
 
-      if (/^[0-9]{13}$/.test(part)) { // 13桁の数字なら法人番号
+      if (/^[0-9]{13}$/.test(part)) { 
           corpNumber = part;
-      } else if (/(法人|会社|合同会社|株式会社|有限会社)/.test(part)) { // 法人名
+      } else if (/(法人|会社|合同会社|株式会社|有限会社)/.test(part)) { 
           companyName = part;
-      } else if (part.includes('〒') || part.includes('県') || part.includes('都') || part.includes('府') || part.includes('道') || part.includes('市') || part.includes('区') || /^[0-9]{3}-[0-9]{4}$/.test(part) || /^[0-9０-９]+丁目/.test(part)) { 
-          // 住所（複数行に分かれている場合もあるため、結合する）
+      } else if (part.includes('〒') || part.match(/[都道府県市区町村]/) || part.match(/[0-9０-９]+[丁目番地号-]/) || /^[0-9]{3}-[0-9]{4}$/.test(part)) { 
           address += part + " ";
-      } else if (/^0\d{1,4}-\d{1,4}-\d{4}$/.test(part)) { // 電話番号
+      } else if (/^0\d{1,4}-\d{1,4}-\d{4}$/.test(part)) { 
           if (part.startsWith('080') || part.startsWith('090') || part.startsWith('070')) {
               mobile = part;
           } else {
               tel = part;
           }
-      } else if (part.includes('@')) { // メールアドレス
+      } else if (part.includes('@')) { 
           email = part;
       } else if (/^[ぁ-んァ-ヶ一-龥々\s　]+$/.test(part) && part.length >= 2 && part.length <= 15 && !companyName.includes(part)) {
-          // 漢字・ひらがな・カタカナ・スペースのみで構成された行（2〜15文字）なら「氏名（フルネーム）」として扱う
           name = part;
       } else {
-          // それ以外は備考
           otherInfo.push(part);
       }
   }
   
-  // 住所の余分なスペースを消す
   address = address.trim();
 
   // --- 2. 抽出した情報をキャンバスに描画 ---
-
-  // 背景を少し温かみのあるオフホワイトに
-  ctx.fillStyle = '#F7F7F4';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // 下部のデザイン帯（画像の雰囲気に合わせて）
-  ctx.fillStyle = '#1A2942'; // 濃いネイビー
-  ctx.fillRect(0, canvas.height - 60, canvas.width, 60);
-  ctx.fillStyle = '#A0A5B0'; // グレー
-  ctx.fillRect(0, canvas.height - 60, 400, 60);
-
-  // フォントと文字色の基本設定
+  const leftX = 100;
   ctx.fillStyle = '#000000';
   ctx.textAlign = 'left';
 
-  const leftX = 100; // 左の基本余白
-
-  // 法人名 (左上)
+  // 法人名 (左上、余白を適切に)
   if (companyName) {
-      ctx.font = 'bold 38px "Noto Sans CJK"';
+      ctx.font = 'bold 36px "Noto Sans CJK"';
       ctx.fillText(companyName, leftX, 120);
   }
 
-  // 氏名 (中央左)
+  // 氏名 (中央より上)
   if (name) {
-      ctx.font = 'bold 75px "Noto Sans CJK"';
-      // もし3文字や4文字なら、少し文字間にスペースを入れるとそれっぽくなりますが、今回はそのまま大きく配置
-      ctx.fillText(name, leftX, 300);
+      ctx.font = 'bold 70px "Noto Sans CJK"';
+      ctx.fillText(name, leftX, 260);
   }
 
-  // 区切り線（氏名と住所の間）
+  // 区切り線
   ctx.fillStyle = '#000000';
-  ctx.fillRect(leftX, 360, 80, 3); // 長さ80px、太さ3pxの線
+  ctx.fillRect(leftX, 310, 60, 2);
 
   // 連絡先情報 (左下)
-  ctx.font = '26px "Noto Sans CJK"';
-  let currentY = 430;
-  const lineSpacing = 38;
+  ctx.font = '24px "Noto Sans CJK"';
+  let currentY = 370;
+  const lineSpacing = 36;
   
-  // 郵便番号と住所を分ける（もしあれば）
+  // 住所から郵便番号を分離
   let postalCode = address.match(/(〒?\d{3}-\d{4})/);
   let addressText = address.replace(/(〒?\d{3}-\d{4})/, '').trim();
 
   if (postalCode) {
-      // 〒マークがなければ付ける
       const zip = postalCode[1].startsWith('〒') ? postalCode[1] : '〒' + postalCode[1];
       ctx.fillText(zip, leftX, currentY);
       currentY += lineSpacing;
@@ -120,20 +102,29 @@ async function createBusinessCard(text) {
       currentY += lineSpacing;
   }
 
-  // 連絡先（MAIL, MOBILE, TEL のプレフィックスをつけて整列）
+  // 連絡先の整列表示（コロンの位置を固定）
+  const labelX = leftX;
+  const colonX = leftX + 110;
+  const valueX = leftX + 140;
+
   if (email) {
-      ctx.fillText(`MAIL :       ${email}`, leftX, currentY);
+      ctx.fillText('MAIL', labelX, currentY);
+      ctx.fillText(':', colonX, currentY);
+      ctx.fillText(email, valueX, currentY);
       currentY += lineSpacing;
   }
   if (mobile) {
-      ctx.fillText(`MOBILE :   ${mobile}`, leftX, currentY);
+      ctx.fillText('MOBILE', labelX, currentY);
+      ctx.fillText(':', colonX, currentY);
+      ctx.fillText(mobile, valueX, currentY);
       currentY += lineSpacing;
   }
   if (tel) {
-      ctx.fillText(`TEL :        ${tel}`, leftX, currentY);
+      ctx.fillText('TEL', labelX, currentY);
+      ctx.fillText(':', colonX, currentY);
+      ctx.fillText(tel, valueX, currentY);
   }
 
-  // 生成した画像を返す
   return canvas.toBuffer('image/png');
 }
 
