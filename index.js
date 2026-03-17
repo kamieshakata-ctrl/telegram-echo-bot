@@ -28,36 +28,64 @@ async function createBusinessCard(text) {
   let email = "";
   let name = "";
   let corpNumber = "";
-  let otherInfo = [];
 
-  const lines = text.split('\n');
+  // 全ての改行や全角スペースを半角スペースに統一して平坦化
+  let remaining = text.replace(/[\s　]+/g, ' ').trim();
 
-  for (let line of lines) {
-      let part = line.trim();
+  // メールアドレスの抽出
+  const emailMatch = remaining.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  if (emailMatch) { 
+      email = emailMatch[0]; 
+      remaining = remaining.replace(emailMatch[0], ''); 
+  }
+
+  // 電話番号の抽出
+  const phoneMatches = remaining.match(/0\d{1,4}-\d{1,4}-\d{4}/g);
+  if (phoneMatches) {
+      for (let p of phoneMatches) {
+          if (p.startsWith('080') || p.startsWith('090') || p.startsWith('070')) mobile = p;
+          else tel = p;
+          remaining = remaining.replace(p, '');
+      }
+  }
+
+  // 法人番号の抽出
+  const corpMatch = remaining.match(/\b\d{13}\b/);
+  if (corpMatch) { 
+      corpNumber = corpMatch[0]; 
+      remaining = remaining.replace(corpMatch[0], ''); 
+  }
+
+  // 法人名の抽出
+  const companyMatch = remaining.match(/[^\s]*(?:法人|会社|合同会社|株式会社|有限会社)[^\s]*/);
+  if (companyMatch) { 
+      companyName = companyMatch[0]; 
+      remaining = remaining.replace(companyMatch[0], ''); 
+  }
+
+  // 残った文字列（住所＋氏名など）を整理
+  remaining = remaining.replace(/[\s]+/g, ' ').trim();
+  const parts = remaining.split(' ');
+  let addressParts = [];
+  let nameParts = [];
+  let foundAddress = false;
+
+  // 後ろから順にチェックし、数字や住所特有の漢字がない部分を「氏名」とする
+  for (let i = parts.length - 1; i >= 0; i--) {
+      let part = parts[i];
       if (!part) continue;
-
-      if (/^[0-9]{13}$/.test(part)) { 
-          corpNumber = part;
-      } else if (/(法人|会社|合同会社|株式会社|有限会社)/.test(part)) { 
-          companyName = part;
-      } else if (part.includes('〒') || part.match(/[都道府県市区町村]/) || part.match(/[0-9０-９]+[丁目番地号-]/) || /^[0-9]{3}-[0-9]{4}$/.test(part)) { 
-          address += part + " ";
-      } else if (/^0\d{1,4}-\d{1,4}-\d{4}$/.test(part)) { 
-          if (part.startsWith('080') || part.startsWith('090') || part.startsWith('070')) {
-              mobile = part;
-          } else {
-              tel = part;
-          }
-      } else if (part.includes('@')) { 
-          email = part;
-      } else if (/^[ぁ-んァ-ヶ一-龥々\s　]+$/.test(part) && part.length >= 2 && part.length <= 15 && !companyName.includes(part)) {
-          name = part;
+      
+      // 数字が含まれない かつ 住所の末尾特有の漢字(都,道,府,県,市,区,町,村)で終わらない場合は「名前（または役職）」
+      if (!foundAddress && !/[0-9０-９]/.test(part) && !/(都|道|府|県|市|区|町|村)$/.test(part)) {
+          nameParts.unshift(part); // 配列の先頭に追加
       } else {
-          otherInfo.push(part);
+          foundAddress = true; // 一度でも住所らしい単語にぶつかったら、それより前はすべて住所とする
+          addressParts.unshift(part);
       }
   }
   
-  address = address.trim();
+  address = addressParts.join(' ').trim();
+  name = nameParts.join(' ');
 
   // --- 2. 抽出した情報をキャンバスに描画 ---
   const leftX = 100;
