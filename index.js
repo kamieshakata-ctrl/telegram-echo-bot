@@ -27,18 +27,22 @@ async function createBusinessCard(text) {
   let otherInfo = [];
 
   // スペース（全角・半角）や改行で単語ごとに分割
-  const parts = text.split(/[\s　\n]+/);
+  // ただし、名前が「苗字 スペース 名前」の形式だった場合、分断されてしまうのを防ぐため、
+  // まずは改行で配列（行）にしてから、行単位で情報を抽出します。
+  const lines = text.split('\n');
 
-  for (let part of parts) {
+  for (let line of lines) {
+      let part = line.trim();
       if (!part) continue;
 
       if (/^[0-9]{13}$/.test(part)) { // 13桁の数字なら法人番号
           corpNumber = part;
       } else if (/(法人|会社|合同会社|株式会社|有限会社)/.test(part)) { // 法人名
           companyName = part;
-      } else if (part.includes('〒') || part.includes('県') || part.includes('都') || part.includes('府') || part.includes('道') || part.includes('市') || part.includes('区')) { // 住所（簡易的）
+      } else if (part.includes('〒') || part.includes('県') || part.includes('都') || part.includes('府') || part.includes('道') || part.includes('市') || part.includes('区') || /^[0-9]{3}-[0-9]{4}$/.test(part) || /^[0-9０-９]+丁目/.test(part)) { 
+          // 住所（複数行に分かれている場合もあるため、結合する）
           address += part + " ";
-      } else if (/^0\d{1,4}-\d{1,4}-\d{4}$/.test(part)) { // 電話番号（固定か携帯か）
+      } else if (/^0\d{1,4}-\d{1,4}-\d{4}$/.test(part)) { // 電話番号
           if (part.startsWith('080') || part.startsWith('090') || part.startsWith('070')) {
               mobile = part;
           } else {
@@ -46,11 +50,11 @@ async function createBusinessCard(text) {
           }
       } else if (part.includes('@')) { // メールアドレス
           email = part;
-      } else if (/^[ぁ-んァ-ヶ一-龥々]+$/.test(part) && part.length >= 2 && part.length <= 10 && !companyName.includes(part)) {
-          // 漢字ひらがなカタカナのみで2文字〜10文字なら名前の可能性（法人名以外）
+      } else if (/^[ぁ-んァ-ヶ一-龥々\s　]+$/.test(part) && part.length >= 2 && part.length <= 15 && !companyName.includes(part)) {
+          // 漢字・ひらがな・カタカナ・スペースのみで構成された行（2〜15文字）なら「氏名（フルネーム）」として扱う
           name = part;
       } else {
-          // それ以外は備考やその他の情報
+          // それ以外は備考
           otherInfo.push(part);
       }
   }
