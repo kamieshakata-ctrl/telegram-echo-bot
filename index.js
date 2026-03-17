@@ -174,8 +174,22 @@ const mainMenu = Markup.inlineKeyboard([
     [Markup.button.callback('🪪 名刺作成の使い方', 'help_card')]
 ]);
 
+// /locker コマンドの処理（ロッカー検索のショートカット）
+bot.command('locker', (ctx) => {
+    const areaMenu = Markup.inlineKeyboard([
+        [Markup.button.callback('📍 上野', 'area_ueno')],
+        [Markup.button.callback('📍 浅草', 'area_asakusa')],
+        [Markup.button.callback('📍 新宿', 'area_shinjuku')]
+    ]);
+    ctx.reply('【リスト】 預け入れロッカーを選択\n\nエリアを選択してください：', areaMenu);
+});
+
 // /start コマンドの処理
 bot.start((ctx) => {
+    const mainMenu = Markup.inlineKeyboard([
+        [Markup.button.callback('🪪 名刺作成の使い方', 'help_card')],
+        [Markup.button.callback('📦 ロッカー預け入れ', 'locker_deposit')]
+    ]);
     ctx.reply('こんにちは！契約代行アシスタントです。\nメニューから操作を選んでください。', mainMenu);
 });
 
@@ -259,8 +273,8 @@ bot.on('text', async (ctx) => {
 bot.launch().then(async () => {
   // Telegram側にメニューとして登録
   await bot.telegram.setMyCommands([
-    { command: 'start', description: '初期設定と使い方' },
-    { command: 'card', description: 'テキストから名刺を作成' }
+    { command: 'start', description: '名刺作成' },
+    { command: 'locker', description: 'ロッカー検索' }
   ]);
   console.log('Business Card Bot is running...');
 });
