@@ -64,42 +64,73 @@ async function createBusinessCard(text) {
 
   // --- 2. 抽出した情報をキャンバスに描画 ---
 
+  // 背景を少し温かみのあるオフホワイトに
+  ctx.fillStyle = '#F7F7F4';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // 下部のデザイン帯（画像の雰囲気に合わせて）
+  ctx.fillStyle = '#1A2942'; // 濃いネイビー
+  ctx.fillRect(0, canvas.height - 60, canvas.width, 60);
+  ctx.fillStyle = '#A0A5B0'; // グレー
+  ctx.fillRect(0, canvas.height - 60, 400, 60);
+
   // フォントと文字色の基本設定
-  ctx.fillStyle = '#333333';
+  ctx.fillStyle = '#000000';
   ctx.textAlign = 'left';
 
-  // 法人名 (大きく、左上)
+  const leftX = 100; // 左の基本余白
+
+  // 法人名 (左上)
   if (companyName) {
-      ctx.font = 'bold 48px "Noto Sans CJK"';
-      ctx.fillText(companyName, 80, 100);
+      ctx.font = 'bold 38px "Noto Sans CJK"';
+      ctx.fillText(companyName, leftX, 120);
   }
 
-  // 氏名 (中央あたりに非常に大きく)
+  // 氏名 (中央左)
   if (name) {
-      ctx.fillStyle = '#000000';
-      ctx.font = 'bold 72px "Noto Sans CJK"';
-      ctx.fillText(name, 80, 300);
+      ctx.font = 'bold 75px "Noto Sans CJK"';
+      // もし3文字や4文字なら、少し文字間にスペースを入れるとそれっぽくなりますが、今回はそのまま大きく配置
+      ctx.fillText(name, leftX, 300);
   }
 
-  // 連絡先情報 (右下にまとめて配置)
-  ctx.fillStyle = '#333333';
-  ctx.font = '28px "Noto Sans CJK"';
-  let bottomY = 400;
+  // 区切り線（氏名と住所の間）
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(leftX, 360, 80, 3); // 長さ80px、太さ3pxの線
+
+  // 連絡先情報 (左下)
+  ctx.font = '26px "Noto Sans CJK"';
+  let currentY = 430;
+  const lineSpacing = 38;
   
-  if (address) {
-      ctx.fillText(`住所: ${address}`, 80, bottomY);
-      bottomY += 40;
+  // 郵便番号と住所を分ける（もしあれば）
+  let postalCode = address.match(/(〒?\d{3}-\d{4})/);
+  let addressText = address.replace(/(〒?\d{3}-\d{4})/, '').trim();
+
+  if (postalCode) {
+      // 〒マークがなければ付ける
+      const zip = postalCode[1].startsWith('〒') ? postalCode[1] : '〒' + postalCode[1];
+      ctx.fillText(zip, leftX, currentY);
+      currentY += lineSpacing;
   }
-  if (tel) {
-      ctx.fillText(`TEL: ${tel}`, 80, bottomY);
-      bottomY += 40;
+  if (addressText) {
+      ctx.fillText(addressText, leftX, currentY);
+      currentY += lineSpacing;
+  } else if (!postalCode && address) {
+      ctx.fillText(address, leftX, currentY);
+      currentY += lineSpacing;
+  }
+
+  // 連絡先（MAIL, MOBILE, TEL のプレフィックスをつけて整列）
+  if (email) {
+      ctx.fillText(`MAIL :       ${email}`, leftX, currentY);
+      currentY += lineSpacing;
   }
   if (mobile) {
-      ctx.fillText(`携帯: ${mobile}`, 80, bottomY);
-      bottomY += 40;
+      ctx.fillText(`MOBILE :   ${mobile}`, leftX, currentY);
+      currentY += lineSpacing;
   }
-  if (email) {
-      ctx.fillText(`Email: ${email}`, 80, bottomY);
+  if (tel) {
+      ctx.fillText(`TEL :        ${tel}`, leftX, currentY);
   }
 
   // 生成した画像を返す
