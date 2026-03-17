@@ -112,9 +112,7 @@ async function createBusinessCard(text) {
   // 氏名 (中央より上)
   if (name) {
       ctx.fillStyle = '#000000';
-      ctx.font = 'bold 74px "Noto Sans CJK"';
-      // 名前の文字間に少しゆとりを持たせるため、今回はそのまま大きく配置しますが、
-      // 余白(leftX)が全体的に右に寄ってスタイリッシュになります。
+      ctx.font = 'bold 64px "Noto Sans CJK"'; // 74px から 64px に少し縮小
       ctx.fillText(name, leftX, 260);
   }
 
