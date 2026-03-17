@@ -1,4 +1,4 @@
-const { Telegraf } = require('telegraf');
+const { Telegraf, Markup } = require('telegraf');
 const { createCanvas, registerFont, loadImage } = require('canvas');
 const fs = require('fs');
 require('dotenv').config();
@@ -168,18 +168,53 @@ async function createBusinessCard(text) {
   return canvas.toBuffer('image/png');
 }
 
+// メニュー用のキーボード定義
+const mainMenu = Markup.inlineKeyboard([
+    [Markup.button.callback('📦 ロッカー預け入れ', 'locker_deposit')],
+    [Markup.button.callback('🪪 名刺作成の使い方', 'help_card')]
+]);
+
 // /start コマンドの処理
 bot.start((ctx) => {
-    ctx.reply('こんにちは！このグループで名刺を作ります。\n\n【使い方】\n`/card 法人番号 法人名 住所 電話 メール 名前...` のように一発で送信してください。自動で情報を読み取って名刺にします！', { parse_mode: 'Markdown' });
+    ctx.reply('こんにちは！契約代行アシスタントです。\nメニューから操作を選んでください。', mainMenu);
 });
 
 // /help コマンドや「メニュー」という言葉への反応
 bot.help((ctx) => {
-    ctx.reply('【名刺作成Botの使い方】\n\n名刺にしたい情報（法人名、住所、電話番号、名前など）を含んだテキストを、このチャットにそのまま送信してください。\n\n自動的に読み取って名刺画像を作成します！\n\n（※短い挨拶などには反応しません）');
+    ctx.reply('メニューから操作を選んでください。', mainMenu);
 });
 
 bot.hears(/メニュー|ヘルプ|使い方/, (ctx) => {
-    ctx.reply('【名刺作成Botの使い方】\n\n名刺にしたい情報（法人名、住所、電話番号、名前など）を含んだテキストを、このチャットにそのまま送信してください。\n\n自動的に読み取って名刺画像を作成します！\n\n（※短い挨拶などには反応しません）');
+    ctx.reply('メニューから操作を選んでください。', mainMenu);
+});
+
+// 名刺作成の使い方ボタン
+bot.action('help_card', (ctx) => {
+    ctx.reply('【名刺作成の使い方】\n\n名刺にしたい情報（法人名、住所、電話番号、名前など）を含んだテキストを、そのまま送信してください。\n自動的に読み取って名刺画像を作成します！\n\n（※短い挨拶などには反応しません）');
+    ctx.answerCbQuery();
+});
+
+// ロッカー預け入れボタン
+bot.action('locker_deposit', (ctx) => {
+    const areaMenu = Markup.inlineKeyboard([
+        [Markup.button.callback('📍 上野', 'area_ueno')],
+        [Markup.button.callback('📍 浅草', 'area_asakusa')],
+        [Markup.button.callback('📍 新宿', 'area_shinjuku')]
+    ]);
+    ctx.reply('【リスト】 預け入れロッカーを選択\n\nエリアを選択してください：', areaMenu);
+    ctx.answerCbQuery();
+});
+
+// エリア選択ボタン
+bot.action(/^area_(.+)$/, (ctx) => {
+    const areaMap = {
+        'ueno': '上野',
+        'asakusa': '浅草',
+        'shinjuku': '新宿'
+    };
+    const selected = areaMap[ctx.match[1]];
+    ctx.reply(`${selected}エリアが選択されました。\n（※以降のロッカー詳細・預け入れ処理を実装予定です）`);
+    ctx.answerCbQuery();
 });
 
 // テキストを受け取った時の処理（コマンド不要）
