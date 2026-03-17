@@ -213,7 +213,21 @@ bot.action(/^area_(.+)$/, (ctx) => {
         'shinjuku': '新宿'
     };
     const selected = areaMap[ctx.match[1]];
-    ctx.reply(`${selected}エリアが選択されました。\n（※以降のロッカー詳細・預け入れ処理を実装予定です）`);
+    
+    if (ctx.match[1] === 'ueno') {
+        // 上野を選択した場合のカードタイプメッセージ（インラインキーボード付き）
+        const lockerMenu = Markup.inlineKeyboard([
+            [Markup.button.callback('1番ロッカーに預ける', 'locker_deposit_ueno_1')],
+            [Markup.button.callback('2番ロッカーに預ける', 'locker_deposit_ueno_2')],
+            [Markup.button.callback('戻る', 'locker_deposit')]
+        ]);
+        
+        ctx.editMessageText(`📍 【上野エリア】\n\n上野駅周辺のロッカーを選択してください：\n\n・ 空き状況: 〇\n・ 料金: 300円/回`, lockerMenu);
+    } else {
+        // 上野以外はとりあえず仮のメッセージ
+        ctx.editMessageText(`${selected}エリアが選択されました。\n（※現在準備中です）`, Markup.inlineKeyboard([[Markup.button.callback('戻る', 'locker_deposit')]]));
+    }
+    
     ctx.answerCbQuery();
 });
 
