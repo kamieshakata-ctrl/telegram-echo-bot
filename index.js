@@ -2,9 +2,8 @@ const { Telegraf } = require('telegraf');
 const { createCanvas, registerFont } = require('canvas');
 require('dotenv').config();
 
-// フォントの登録（ローカルにダウンロードした日本語フォント）
-registerFont('./NotoSansJP-Regular.ttf', { family: 'Noto Sans JP' });
-registerFont('./NotoSansJP-Bold.ttf', { family: 'Noto Sans JP', weight: 'bold' });
+// システムにインストールされたフォントパスを指定（Dockerfileでインストール済み）
+registerFont('/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc', { family: 'Noto Sans CJK' });
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
@@ -67,20 +66,20 @@ async function createBusinessCard(text) {
 
   // 法人名 (大きく、左上)
   if (companyName) {
-      ctx.font = 'bold 48px "Noto Sans JP"';
+      ctx.font = 'bold 48px "Noto Sans CJK"';
       ctx.fillText(companyName, 80, 100);
   }
 
   // 氏名 (中央あたりに非常に大きく)
   if (name) {
       ctx.fillStyle = '#000000';
-      ctx.font = 'bold 72px "Noto Sans JP"';
+      ctx.font = 'bold 72px "Noto Sans CJK"';
       ctx.fillText(name, 80, 300);
   }
 
   // 連絡先情報 (右下にまとめて配置)
   ctx.fillStyle = '#333333';
-  ctx.font = '28px "Noto Sans JP"';
+  ctx.font = '28px "Noto Sans CJK"';
   let bottomY = 400;
   
   if (address) {
